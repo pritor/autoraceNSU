@@ -13,9 +13,9 @@ class ImageProjection(Node):
         self.declare_parameters(
             namespace='',
             parameters=[
-            ('top_x', 180),
-            ('top_y', -80),
-            ('bottom_x', 320),
+            ('top_x', 270),
+            ('top_y', -100),
+            ('bottom_x', 410),
             ('bottom_y', 222),
             ('is_calibrating', True)
         ])

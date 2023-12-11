@@ -13,15 +13,15 @@ def generate_launch_description():
         executable='image_projector',
         remappings=[('/color/image_output', '/color/image_projected')]
     )
-    comp = Node(
-        package='autorace_core_CVlization',
-        executable='image_compensation',
-        remappings=[('/color/image', '/color/image_projected'), ('/color/image_output', '/color/image_projected_comp')]
-    )
+    # comp = Node(
+    #     package='autorace_core_CVlization',
+    #     executable='image_compensation',
+    #     remappings=[('/color/image', '/color/image_projected'), ('/color/image_output', '/color/image_projected_comp')]
+    # )
     find = Node(
         package='autorace_core_CVlization',
         executable='lane_finder',
-        remappings=[('/color/image', '/color/image_projected_comp')]
+        remappings=[('/color/image', '/color/image_projected')]
     )
 
     img = Node(
@@ -49,7 +49,7 @@ def generate_launch_description():
         autorace,
         referee,
         proj,
-        comp,
+        # comp,
         find,
         img,
         state

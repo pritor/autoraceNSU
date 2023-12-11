@@ -23,28 +23,47 @@ class ImageAnalyzer(Node):
     def img_callback(self, msg):
         image = self.br.imgmsg_to_cv2(msg, "bgr8")
         res = self.analyze(image)
+        res_msg = String()
+        res_msg.data = res
+        self.st_pub.publish(res_msg)
         # self.get_logger().info("result of image analyzing is "+res)
 
     def analyze(self, image):
+        if self.started:
+            image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            ikp, ides= self.sift.detectAndCompute(image_gray, None)
+            # BFMatcher решает матч
+            for i in self.signs:
+                matches = self.bf.knnMatch(i[1], ides, k=2)
+                # Отрегулируйте коэффициент
+                good = []
+                for m, n in matches:
+                    if m.distance < 0.55 * n.distance:
+                        good.append([m])
+                # sign_pth = os.path.join(get_package_share_directory('autorace_core_CVlization'), 'signs', 'tunnel.png')
+                # sign = cv2.imread(sign_pth)
+                # dbg = cv2.drawMatchesKnn(sign, i[0], image, ikp, good, None, flags=2)
+                # msg = self.br.cv2_to_imgmsg(dbg, 'bgr8')
+                # self.dbg_pub.publish(msg)
+                if len(good) >= 20:
+                    # self.get_logger().info("result of image analyzing is " + "found "+i[2])
+                    return i[2]
+        else:
+            # self.started =True
 
-        image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        ikp, ides= self.sift.detectAndCompute(image_gray, None)
-        # BFMatcher решает матч
-        for i in self.signs:
-            matches = self.bf.knnMatch(i[1], ides, k=2)
-            # Отрегулируйте коэффициент
-            good = []
-            for m, n in matches:
-                if m.distance < 0.55 * n.distance:
-                    good.append([m])
-            # sign_pth = os.path.join(get_package_share_directory('autorace_core_CVlization'), 'signs', 'tunnel.png')
-            # sign = cv2.imread(sign_pth)
-            # dbg = cv2.drawMatchesKnn(sign, i[0], image, ikp, good, None, flags=2)
-            # msg = self.br.cv2_to_imgmsg(dbg, 'bgr8')
+            lower_green= np.array([0, 100, 0])
+            upper_green= np.array([5, 120, 5])
+            mask = cv2.inRange(image, lower_green, upper_green)
+            fraction = np.count_nonzero(mask)
+            if fraction > 1000:
+                self.get_logger().info('green found')
+                self.started = True
+                return 'follow'
+            # res = cv2.bitwise_and(image, image, mask=mask)
+            #
+            # msg = self.br.cv2_to_imgmsg(res, 'bgr8')
             # self.dbg_pub.publish(msg)
-            if len(good) >= 20:
-                self.get_logger().info("result of image analyzing is " + "found "+i[2])
-                return i[2]
+
         return "nothing"
 
 

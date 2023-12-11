@@ -16,28 +16,33 @@ class StateDecider(Node):
         state = msg.data
         if state == "follow":
             self.get_logger().info('starting subprocess run')
-            self.mission_running = False
-            subprocess.call(["ros2", "run", "autorace_core_CVlization", "lane_follower"])
+            subprocess.Popen(["ros2", "run", "autorace_core_CVlization", "lane_follower"])
 
         elif state == "intersection":
-            self.get_logger().info('intersection subprocess run')
-            self.mssion_running = True
+            if not self.mission_running:
+                self.get_logger().info('intersection subprocess run')
+                self.mission_running = True
+                subprocess.Popen(["ros2", "run", "autorace_core_CVlization", "intersection"])
 
         elif state == "construction":
             self.get_logger().info('construction subprocess run')
-            self.mssion_running = True
+            self.mission_running = True
 
         elif state == "parking":
             self.get_logger().info('parking subprocess run')
-            self.mssion_running = True
+            self.mission_running = True
 
         elif state == "pedestrian":
             self.get_logger().info('pedestrian subprocess run')
-            self.mssion_running = True
+            self.mission_running = True
 
         elif state == "tunnel":
-            self.get_logger().info('parking subprocess run')
-            self.mssion_running = True
+            self.get_logger().info('tunnel subprocess run')
+            self.mission_running = True
+
+        elif state == "completed":
+            self.get_logger().info('ready for new missions')
+            self.mission_running = False
 
 
 def main(args=None):

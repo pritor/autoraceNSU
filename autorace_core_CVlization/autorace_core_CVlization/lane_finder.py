@@ -28,10 +28,10 @@ class LaneFinder(Node):
         # self.lightness_yellow_l = rospy.get_param("~detect/lane/yellow/lightness_l", 95)
         # self.lightness_yellow_h = rospy.get_param("~detect/lane/yellow/lightness_h", 255)
         self.hue_white_l = 0
-        self.hue_white_h = 179
+        self.hue_white_h = 255
         self.saturation_white_l = 0
-        self.saturation_white_h = 70
-        self.lightness_white_l = 105
+        self.saturation_white_h = 15
+        self.lightness_white_l = 253
         self.lightness_white_h = 255
 
         self.hue_yellow_l = 10
@@ -40,7 +40,7 @@ class LaneFinder(Node):
         self.saturation_yellow_h = 255
         self.lightness_yellow_l = 95
         self.lightness_yellow_h = 255
-        # self.is_calibration_mode = rospy.get_param("~is_detection_calibration_mode", False)
+        self.is_calibration_mode = True
         # if self.is_calibration_mode == True:
         #     srv_detect_lane = Server(DetectLaneParamsConfig, self.cbGetDetectLaneParam)
 
@@ -246,14 +246,9 @@ class LaneFinder(Node):
         msg_white_line_reliability.data = self.reliability_white_line
         self.pub_white_line_reliability.publish(msg_white_line_reliability)
 
-        # if self.is_calibration_mode == True:
-        #     if self.pub_image_type == "compressed":
-        #         # publishes white lane filtered image in compressed type
-        #         self.pub_image_white_lane.publish(self.cvBridge.cv2_to_compressed_imgmsg(mask, "jpg"))
-        #
-        #     elif self.pub_image_type == "raw":
+        if self.is_calibration_mode == True:
                 # publishes white lane filtered image in raw type
-                  #self.pub_image_white_lane.publish(self.cvBridge.cv2_to_imgmsg(cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR), "bgr8"))
+            self.pub_image_white_lane.publish(self.cvBridge.cv2_to_imgmsg(cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR), "bgr8"))
 
         return fraction_num, mask
 
@@ -307,14 +302,10 @@ class LaneFinder(Node):
         msg_yellow_line_reliability.data = self.reliability_yellow_line
         self.pub_yellow_line_reliability.publish(msg_yellow_line_reliability)
 
-        # if self.is_calibration_mode == True:
-        #     if self.pub_image_type == "compressed":
-        #         # publishes yellow lane filtered image in compressed type
-        #         self.pub_image_yellow_lane.publish(self.cvBridge.cv2_to_compressed_imgmsg(mask, "jpg"))
-        #
-        #     elif self.pub_image_type == "raw":
-        #         # publishes yellow lane filtered image in raw type
-        #         self.pub_image_yellow_lane.publish(self.cvBridge.cv2_to_imgmsg(mask, "bgr8"))
+        if self.is_calibration_mode == True:
+
+                # publishes yellow lane filtered image in raw type
+            self.pub_image_yellow_lane.publish(self.cvBridge.cv2_to_imgmsg(res, "bgr8"))
 
         return fraction_num, mask
 
@@ -497,7 +488,7 @@ class LaneFinder(Node):
         if self.is_center_x_exist == True:
                 # publishes lane center
                 msg_desired_center = Float64()
-                msg_desired_center.data = centerx.item(350)
+                msg_desired_center.data = centerx.item(280)
                 self.pub_lane.publish(msg_desired_center)
 
         self.pub_image_lane.publish(self.cvBridge.cv2_to_imgmsg(final, "bgr8"))
