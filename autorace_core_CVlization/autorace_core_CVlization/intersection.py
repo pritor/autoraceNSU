@@ -68,7 +68,7 @@ class IntersectionNode(Node):
         min_i = np.argmin(lidar)
         min = lidar[min_i]
         if self.started and not self.time_to_stop:
-            if min < 35 and 45 < min_i < 135:
+            if min < 35 and 20 < min_i < 110:
                 self.time_to_stop = True
                 self.get_logger().info('stop condition')
         # elif self.started and self.turned:

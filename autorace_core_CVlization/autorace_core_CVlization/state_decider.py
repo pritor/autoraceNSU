@@ -15,7 +15,7 @@ class StateDecider(Node):
     def decider_callback(self, msg):
         state = msg.data
         if state == "follow":
-            self.get_logger().info('starting subprocess run')
+            self.get_logger().info('lane following subprocess run')
             subprocess.Popen(["ros2", "run", "autorace_core_CVlization", "lane_follower"])
 
         elif state == "intersection":
@@ -29,8 +29,10 @@ class StateDecider(Node):
             self.mission_running = True
 
         elif state == "parking":
-            self.get_logger().info('parking subprocess run')
-            self.mission_running = True
+            if not self.mission_running:
+                self.get_logger().info('parking subprocess run')
+                self.mission_running = True
+                subprocess.Popen(["ros2", "run", "autorace_core_CVlization", "parking"])
 
         elif state == "pedestrian":
             self.get_logger().info('pedestrian subprocess run')
