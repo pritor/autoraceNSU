@@ -25,8 +25,10 @@ class StateDecider(Node):
                 subprocess.Popen(["ros2", "run", "autorace_core_CVlization", "intersection"])
 
         elif state == "construction":
-            self.get_logger().info('construction subprocess run')
-            self.mission_running = True
+            if not self.mission_running:
+                self.get_logger().info('construction subprocess run')
+                self.mission_running = True
+                subprocess.Popen(['ros2', 'run', 'autorace_core_CVlization', 'construction'])
 
         elif state == "parking":
             if not self.mission_running:

@@ -7,6 +7,8 @@ import numpy as np
 from std_msgs.msg import String, Bool
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Image, CompressedImage, LaserScan
+from rclpy.parameter import Parameter
+
 import os
 from ament_index_python.packages import get_package_share_directory
 
@@ -14,20 +16,52 @@ from ament_index_python.packages import get_package_share_directory
 class IntersectionNode(Node):
     def __init__(self, signs):
         super().__init__('intersection')
-        self.signs = signs
+
         self.sub_image_original = self.create_subscription(Image, '/color/image', self.cbChooseDirection, 10)
         self.sub_lidar = self.create_subscription(LaserScan, '/scan', self.cbLidar, 1)
         self.pub_cmd_vel = self.create_publisher(Twist, '/cmd_vel', 1)
         self.dbg_pub = self.create_publisher(Image, '/debug/image', 1)
         self.st_pub = self.create_publisher(String, '/state', 1)
         self.shtdwn_pub = self.create_publisher(Bool, '/shutdown/lane_follower', 1)
-        self.br = CvBridge()
+
         self.started = False
         self.time_to_stop = False
         self.turned = False
         self.direction = "none"
+
+        self.signs = signs
+        self.br = CvBridge()
         self.sift = cv2.SIFT_create()
         self.bf = cv2.BFMatcher()
+
+        self.timer_node = rclpy.create_node('intersection_timer')
+        self.timer_node.set_parameters([Parameter('use_sim_time', value=True)])
+        self.timer = self.timer_node.create_timer(0.01, self.timerCb)
+        self.cur_time = 0
+
+    def convert_to_float(self, time_tuple):
+        '''
+        Helper method to convert ROS2 time to float
+        '''
+        seconds, nanoseconds = time_tuple
+        total_seconds = seconds + nanoseconds / 1e9
+        return total_seconds
+
+    def timerCb(self):
+        # self.get_logger().info('timer_node callback')
+        self.cur_time = self.convert_to_float(self.timer_node.get_clock().now().seconds_nanoseconds())
+
+    def sleep(self, secs):
+        rclpy.spin_once(self.timer_node)  # two times, because one is not enough to update cur_time
+        rclpy.spin_once(self.timer_node)
+        t0 = self.cur_time
+        d = 0
+        # self.get_logger().info(f'timer started with {t0} and {secs}')
+        while d <= secs:
+            rclpy.spin_once(self.timer_node)
+            t = self.cur_time
+            d = t - t0
+        # self.get_logger().info(f'timer ended with {t}')
 
     def cbChooseDirection(self, msg):
         if not self.started:
@@ -42,26 +76,31 @@ class IntersectionNode(Node):
                 shtdwn = Bool()
                 shtdwn.data = True
                 self.shtdwn_pub.publish(shtdwn)
-                time.sleep(1)
+                self.sleep(1.5)
                 if self.direction == 'left':
                     vel = Twist()
                     vel.linear.x = 0.03
                     vel.angular.z = 0.5
                     self.pub_cmd_vel.publish(vel)
-                    time.sleep(5)
+                    self.sleep(4.2)
                     vel.linear.x = 0.0
                     vel.angular.z = 0.0
                     self.pub_cmd_vel.publish(vel)
+                elif self.direction == 'right':
+                    vel = Twist()
+                    vel.linear.x = 0.1
+                    self.pub_cmd_vel.publish(vel)
+
                 state = String()
                 state.data = 'follow'
                 self.turned = True
                 self.st_pub.publish(state)
-                time.sleep(1)
+                self.sleep(2)
                 state = String()
                 state.data = 'completed'
                 self.st_pub.publish(state)
+                self.timer_node.destroy_node()
                 self.destroy_node()
-
 
     def cbLidar(self, msg):
         lidar = np.array(msg.ranges)

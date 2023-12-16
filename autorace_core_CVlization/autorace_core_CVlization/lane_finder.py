@@ -5,6 +5,8 @@ import cv2
 import numpy as np
 from std_msgs.msg import UInt8, Float64
 from sensor_msgs.msg import Image, CompressedImage
+
+
 # from dynamic_reconfigure.server import Server
 # from turtlebot3_autorace_detect.cfg import DetectLaneParamsConfig
 
@@ -70,17 +72,17 @@ class LaneFinder(Node):
         #         self.pub_image_yellow_lane = rospy.Publisher('/detect/image_output_sub2/compressed', CompressedImage,
         #                                                      queue_size=1)
         #     elif self.pub_image_type == "raw":
-                # publishes lane image in raw type
-        self.pub_image_white_lane = self.create_publisher(Image, '/detect/image_output_sub1',  10)
-        self.pub_image_yellow_lane = self.create_publisher(Image,'/detect/image_output_sub2',  10)
+        # publishes lane image in raw type
+        self.pub_image_white_lane = self.create_publisher(Image, '/detect/image_output_sub1', 10)
+        self.pub_image_yellow_lane = self.create_publisher(Image, '/detect/image_output_sub2', 10)
 
-        self.pub_lane = self.create_publisher(Float64,'/detect/lane',  10)
+        self.pub_lane = self.create_publisher(Float64, '/detect/lane', 10)
 
         # subscribes state : yellow line reliability
-        self.pub_yellow_line_reliability = self.create_publisher(UInt8,'/detect/yellow_line_reliability',  10)
+        self.pub_yellow_line_reliability = self.create_publisher(UInt8, '/detect/yellow_line_reliability', 10)
 
         # subscribes state : white line reliability
-        self.pub_white_line_reliability = self.create_publisher(UInt8,'/detect/white_line_reliability',  10)
+        self.pub_white_line_reliability = self.create_publisher(UInt8, '/detect/white_line_reliability', 10)
 
         self.cvBridge = CvBridge()
 
@@ -91,7 +93,6 @@ class LaneFinder(Node):
 
         self.reliability_white_line = 100
         self.reliability_yellow_line = 100
-
 
     # def image_callback(self, msg):
     #     cv_image = self.br.imgmsg_to_cv2(msg, '8UC3')
@@ -108,7 +109,6 @@ class LaneFinder(Node):
     #     cv.drawContours(cv_image, countours, -1, (0, 0, 255), 9)
     #     img_to_pub = self.br.cv2_to_imgmsg(res,'8UC3' )
     #     self.publisher_.publish(img_to_pub)
-
 
     # def cbGetDetectLaneParam(self, config, level):
     #     rospy.loginfo("[Detect Lane] Detect Lane Calibration Parameter reconfigured to")
@@ -219,7 +219,7 @@ class LaneFinder(Node):
 
         fraction_num = np.count_nonzero(mask)
 
-        if True:#self.is_calibration_mode == False:
+        if True:  # self.is_calibration_mode == False:
             if fraction_num > 35000:
                 if self.lightness_white_l < 250:
                     self.lightness_white_l += 5
@@ -247,8 +247,9 @@ class LaneFinder(Node):
         self.pub_white_line_reliability.publish(msg_white_line_reliability)
 
         if self.is_calibration_mode == True:
-                # publishes white lane filtered image in raw type
-            self.pub_image_white_lane.publish(self.cvBridge.cv2_to_imgmsg(cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR), "bgr8"))
+            # publishes white lane filtered image in raw type
+            self.pub_image_white_lane.publish(
+                self.cvBridge.cv2_to_imgmsg(cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR), "bgr8"))
 
         return fraction_num, mask
 
@@ -275,7 +276,7 @@ class LaneFinder(Node):
 
         fraction_num = np.count_nonzero(mask)
 
-        if True: #self.is_calibration_mode == False:
+        if True:  # self.is_calibration_mode == False:
             if fraction_num > 35000:
                 if self.lightness_yellow_l < 250:
                     self.lightness_yellow_l += 20
@@ -289,7 +290,7 @@ class LaneFinder(Node):
             if np.count_nonzero(mask[i, ::]) > 0:
                 how_much_short += 1
 
-        how_much_short = self.window_height- how_much_short
+        how_much_short = self.window_height - how_much_short
 
         if how_much_short > 100:
             if self.reliability_yellow_line >= 5:
@@ -303,8 +304,7 @@ class LaneFinder(Node):
         self.pub_yellow_line_reliability.publish(msg_yellow_line_reliability)
 
         if self.is_calibration_mode == True:
-
-                # publishes yellow lane filtered image in raw type
+            # publishes yellow lane filtered image in raw type
             self.pub_image_yellow_lane.publish(self.cvBridge.cv2_to_imgmsg(res, "bgr8"))
 
         return fraction_num, mask
@@ -419,18 +419,18 @@ class LaneFinder(Node):
 
         ploty = np.linspace(0, cv_image.shape[0] - 1, cv_image.shape[0])
 
-        if yellow_fraction > 3000:
+        if yellow_fraction > 1000:
             pts_left = np.array([np.flipud(np.transpose(np.vstack([self.left_fitx, ploty])))])
             cv2.polylines(color_warp_lines, np.int_([pts_left]), isClosed=False, color=(0, 0, 255), thickness=25)
 
-        if white_fraction > 3000:
+        if white_fraction > 1000:
             pts_right = np.array([np.transpose(np.vstack([self.right_fitx, ploty]))])
             cv2.polylines(color_warp_lines, np.int_([pts_right]), isClosed=False, color=(255, 255, 0), thickness=25)
 
         self.is_center_x_exist = True
 
         if self.reliability_white_line > 50 and self.reliability_yellow_line > 50:
-            if white_fraction > 3000 and yellow_fraction > 3000:
+            if white_fraction > 1000 and yellow_fraction > 1000:
                 centerx = np.mean([self.left_fitx, self.right_fitx], axis=0)
                 pts = np.hstack((pts_left, pts_right))
                 pts_center = np.array([np.transpose(np.vstack([centerx, ploty]))])
@@ -441,14 +441,14 @@ class LaneFinder(Node):
                 # Draw the lane onto the warped blank image
                 cv2.fillPoly(color_warp, np.int_([pts]), (0, 255, 0))
 
-            if white_fraction > 3000 and yellow_fraction <= 3000:
+            if white_fraction > 1000 and yellow_fraction <= 1000:
                 centerx = np.subtract(self.right_fitx, 320)
                 pts_center = np.array([np.transpose(np.vstack([centerx, ploty]))])
 
                 cv2.polylines(color_warp_lines, np.int_([pts_center]), isClosed=False, color=(0, 255, 255),
                               thickness=12)
 
-            if white_fraction <= 3000 and yellow_fraction > 3000:
+            if white_fraction <= 1000 and yellow_fraction > 1000:
                 centerx = np.add(self.left_fitx, 320)
                 pts_center = np.array([np.transpose(np.vstack([centerx, ploty]))])
 
@@ -486,10 +486,10 @@ class LaneFinder(Node):
         #
         # elif self.pub_image_type == "raw":
         if self.is_center_x_exist == True:
-                # publishes lane center
-                msg_desired_center = Float64()
-                msg_desired_center.data = centerx.item(280)
-                self.pub_lane.publish(msg_desired_center)
+            # publishes lane center
+            msg_desired_center = Float64()
+            msg_desired_center.data = centerx.item(300)
+            self.pub_lane.publish(msg_desired_center)
 
         self.pub_image_lane.publish(self.cvBridge.cv2_to_imgmsg(final, "bgr8"))
 

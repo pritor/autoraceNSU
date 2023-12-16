@@ -34,12 +34,15 @@ class ImageAnalyzer(Node):
             ikp, ides= self.sift.detectAndCompute(image_gray, None)
             # BFMatcher решает матч
             for i in self.signs:
-                matches = self.bf.knnMatch(i[1], ides, k=2)
-                # Отрегулируйте коэффициент
                 good = []
-                for m, n in matches:
-                    if m.distance < 0.55 * n.distance:
-                        good.append([m])
+                try:
+                    matches = self.bf.knnMatch(i[1], ides, k=2)
+                # Отрегулируйте коэффициент
+
+                    for m, n in matches:
+                        if m.distance < 0.55 * n.distance:
+                            good.append([m])
+                except: pass
                 # sign_pth = os.path.join(get_package_share_directory('autorace_core_CVlization'), 'signs', 'tunnel.png')
                 # sign = cv2.imread(sign_pth)
                 # dbg = cv2.drawMatchesKnn(sign, i[0], image, ikp, good, None, flags=2)

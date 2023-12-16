@@ -3,11 +3,12 @@ from std_msgs.msg import Float64, Bool
 from geometry_msgs.msg import Twist
 import rclpy
 from rclpy.node import Node
-
+from rclpy.parameter import Parameter
 
 class ControlLane(Node):
     def __init__(self):
         super().__init__('control_lane')
+        self.set_parameters([Parameter('use_sim_time', value=True)])
         self.sub_lane = self.create_subscription(Float64, '/detect/lane',  self.cbFollowLane, 1)
         # self.sub_max_vel = rospy.Subscriber('/control/max_vel', Float64, self.cbGetMaxVel, queue_size=1)
         self.shtdwn_sub = self.create_subscription(Bool, '/shutdown/lane_follower', self.cbShutdown, 1 )
@@ -32,7 +33,7 @@ class ControlLane(Node):
         Kp = 0.01
         Kd = 0.075
         Ki = 0.003
-        dt = self.get_clock().now().nanoseconds * (10**(-9)) - self.t0
+        dt = self.get_clock().now().nanoseconds * (10**(-9)) - self.t0 + 0.0000001
         e_i = self.cumulativeError/dt
         # ei = Float64()
         # ei.data = e_i
