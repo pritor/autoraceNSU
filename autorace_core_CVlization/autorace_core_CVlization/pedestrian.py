@@ -12,7 +12,7 @@ from tf2_ros import TransformBroadcaster
 from geometry_msgs.msg import TransformStamped
 import subprocess
 from std_msgs.msg import Bool
-
+import time
 
 class ped_pepe(Node):
 
@@ -20,14 +20,14 @@ class ped_pepe(Node):
         super().__init__('pedestrian_pepe')
 
         self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
-        #ros2 topic pub --once /shutdown/lane_follower std_msgs/Bool 'data: True'
+        # ros2 topic pub --once /shutdown/lane_follower std_msgs/Bool 'data: True'
         self.stop_lane_follower_publisher = self.create_publisher(Bool, '/shutdown/lane_follower', 10)
         self.run_lane_follower_publisher = self.create_publisher(String, '/state', 10)
         self.subscriber_1 = self.create_subscription(LaserScan, '/scan', self.log_func, 10)
         self.subscriber_1 = self.create_subscription(LaserScan, '/scan', self.watch_pedestrian, 10)
         self.scan = LaserScan()
-        #self.timer = self.create_timer(0.1, self.move)
-        #self.timer_back = self.create_timer(0.1, self.back)
+        # self.timer = self.create_timer(0.1, self.move)
+        # self.timer_back = self.create_timer(0.1, self.back)
         self.flag_pepe = False
         self.get_logger().info('pedestrian_node initialized')
 
@@ -40,33 +40,35 @@ class ped_pepe(Node):
             self.get_logger().info(f' 	from log index {index_min_val}, value {min_val}')
 
     def watch_pedestrian(self, msg):
-    	#stop command
-    	laser = np.array(msg.ranges)
-    	min_val = min(laser)
-    	index_min_val = np.argmin(laser)
+        # stop command
+        laser = np.array(msg.ranges)
+        min_val = min(laser)
+        index_min_val = np.argmin(laser)
 
-    	if (((index_min_val>=0 and index_min_val <= 28) or (index_min_val>=355 and index_min_val <= 359)) and (min_val <= 0.15)):
-    		self.get_logger().info(f'STOP, index {index_min_val}, val {min_val}')
-    		stop_msg = Bool()
-    		stop_msg.data = True
-    		self.stop_lane_follower_publisher.publish(stop_msg)
-    		self.flag_pepe = True
-    	elif (index_min_val>=110 and index_min_val <= 235):
-    		self.get_logger().info('pedestrian mission done')
-    		run_msg = String()
-    		run_msg.data = 'follow'
-    		self.run_lane_follower_publisher.publish(run_msg)
-    		self.destroy_node()
-    	else:
-    		#prodolzhaem dvizhenie
-    		if (self.flag_pepe):
-    			run_msg = String()
-    			run_msg.data = 'follow'
-    			self.run_lane_follower_publisher.publish(run_msg)
-    			self.flag_pepe = True
-    		self.get_logger().info('running')
-
-
+        if (((index_min_val >= 0 and index_min_val <= 28) or (index_min_val >= 355 and index_min_val <= 359)) and (
+                min_val <= 0.15)):
+            self.get_logger().info(f'STOP, index {index_min_val}, val {min_val}')
+            stop_msg = Bool()
+            stop_msg.data = True
+            self.stop_lane_follower_publisher.publish(stop_msg)
+            self.flag_pepe = True
+        elif index_min_val >= 110 and index_min_val <= 235:
+            self.get_logger().info('pedestrian mission done')
+            run_msg = String()
+            run_msg.data = 'follow'
+            self.run_lane_follower_publisher.publish(run_msg)
+            time.sleep(1)
+            run_msg.data = 'completed'
+            self.run_lane_follower_publisher.publish(run_msg)
+            self.destroy_node()
+        else:
+            # prodolzhaem dvizhenie
+            if self.flag_pepe:
+                run_msg = String()
+                run_msg.data = 'follow'
+                self.run_lane_follower_publisher.publish(run_msg)
+                self.flag_pepe = True
+            self.get_logger().info('running')
 
 
 def main(args=None):

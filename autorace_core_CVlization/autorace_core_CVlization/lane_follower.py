@@ -30,9 +30,9 @@ class ControlLane(Node):
 
         error = center - 424
 
-        Kp = 0.01
-        Kd = 0.075
-        Ki = 0.003
+        Kp = 0.005
+        Kd = 0.05
+        Ki = 0.001
         dt = self.get_clock().now().nanoseconds * (10**(-9)) - self.t0 + 0.0000001
         e_i = self.cumulativeError/dt
         # ei = Float64()

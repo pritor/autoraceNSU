@@ -37,8 +37,10 @@ class StateDecider(Node):
                 subprocess.Popen(["ros2", "run", "autorace_core_CVlization", "parking"])
 
         elif state == "pedestrian":
-            self.get_logger().info('pedestrian subprocess run')
-            self.mission_running = True
+            if not self.mission_running:
+                self.get_logger().info('pedestrian subprocess run')
+                self.mission_running = True
+                subprocess.Popen(["ros2", "run", "autorace_core_CVlization", "pedestrian"])
 
         elif state == "tunnel":
             self.get_logger().info('tunnel subprocess run')

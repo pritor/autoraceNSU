@@ -5,7 +5,7 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 import numpy as np
 from rclpy.parameter import Parameter
-
+import time
 class ConstructionNode(Node):
     def __init__(self):
         super().__init__('construction')
@@ -24,7 +24,7 @@ class ConstructionNode(Node):
 
         self.timer_node = rclpy.create_node('construction_timer')
         self.timer_node.set_parameters([Parameter('use_sim_time', value=True)])
-        self.timer = self.timer_node.create_timer(0.001, self.timerCb)
+        self.timer = self.timer_node.create_timer(0.0001, self.timerCb)
         self.cur_time = 0
 
 
@@ -35,6 +35,8 @@ class ConstructionNode(Node):
 
     def sleep(self, secs):
         rclpy.spin_once(self.timer_node)  # two times, because one is not enough to update cur_time
+        rclpy.spin_once(self.timer_node)
+        time.sleep(0.001)
         rclpy.spin_once(self.timer_node)
         t0 = self.cur_time
         d = 0
@@ -111,7 +113,7 @@ class ConstructionNode(Node):
             vel.angular.z = 0.5
             self.get_logger().info(f'{lidar[179]} fourth turn')
             self.pub_vel.publish(vel)
-        elif self.third_turn and not self.fourth_turn and abs(lidar[179] - lidar[180])>0.0005 and lidar[179]<0.27:
+        elif self.third_turn and not self.fourth_turn and abs(lidar[179] - lidar[180])>0.001 and lidar[179]<0.27:
             vel = Twist()
             vel.angular.z = 0.3
             self.get_logger().info(f'{lidar[179]} {lidar[180]} fourth turn tuning')
@@ -123,9 +125,9 @@ class ConstructionNode(Node):
             self.pub_vel.publish(vel)
             self.fourth_turn = True
             self.sleep(1.2)
-            vel.linear.x = 0.15
-            self.pub_vel.publish(vel)
-            self.sleep(0.5)
+            # vel.linear.x = 0.10
+            # self.pub_vel.publish(vel)
+            # self.sleep(0.3)
             state = String()
             state.data = 'follow'
             self.turned = True

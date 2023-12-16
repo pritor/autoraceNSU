@@ -36,7 +36,7 @@ class IntersectionNode(Node):
 
         self.timer_node = rclpy.create_node('intersection_timer')
         self.timer_node.set_parameters([Parameter('use_sim_time', value=True)])
-        self.timer = self.timer_node.create_timer(0.001, self.timerCb)
+        self.timer = self.timer_node.create_timer(0.0001, self.timerCb)
         self.cur_time = 0
 
     def timerCb(self):
@@ -80,7 +80,7 @@ class IntersectionNode(Node):
                     self.pub_cmd_vel.publish(vel)
                 elif self.direction == 'right':
                     vel = Twist()
-                    vel.linear.x = 0.1
+                    vel.linear.x = 0.05
                     self.pub_cmd_vel.publish(vel)
 
                 state = String()

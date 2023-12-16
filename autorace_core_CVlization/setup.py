@@ -34,6 +34,7 @@ setup(
             'intersection=autorace_core_CVlization.intersection:main',
             'construction=autorace_core_CVlization.construction:main',
             'parking=autorace_core_CVlization.parking:main',
+            'pedestrian=autorace_core_CVlization.pedestrian:main'
         ],
     },
 )
