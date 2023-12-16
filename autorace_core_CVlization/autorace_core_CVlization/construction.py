@@ -24,20 +24,14 @@ class ConstructionNode(Node):
 
         self.timer_node = rclpy.create_node('construction_timer')
         self.timer_node.set_parameters([Parameter('use_sim_time', value=True)])
-        self.timer = self.timer_node.create_timer(0.01, self.timerCb)
+        self.timer = self.timer_node.create_timer(0.001, self.timerCb)
         self.cur_time = 0
 
-    def convert_to_float(self, time_tuple):
-        '''
-        Helper method to convert ROS2 time to float
-        '''
-        seconds, nanoseconds = time_tuple
-        total_seconds = seconds + nanoseconds / 1e9
-        return total_seconds
+
 
     def timerCb(self):
         # self.get_logger().info('timer_node callback')
-        self.cur_time = self.convert_to_float(self.timer_node.get_clock().now().seconds_nanoseconds())
+        self.cur_time = self.timer_node.get_clock().now().nanoseconds * 1e-9
 
     def sleep(self, secs):
         rclpy.spin_once(self.timer_node)  # two times, because one is not enough to update cur_time
@@ -112,7 +106,7 @@ class ConstructionNode(Node):
             vel.linear.x = 0.0
             self.pub_vel.publish(vel)
             self.third_turn = True
-        if self.third_turn and not self.fourth_turn and lidar[179] > 0.27 :
+        if self.third_turn and not self.fourth_turn and lidar[179] > 0.27:
             vel = Twist()
             vel.angular.z = 0.5
             self.get_logger().info(f'{lidar[179]} fourth turn')

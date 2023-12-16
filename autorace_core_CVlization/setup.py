@@ -32,7 +32,8 @@ setup(
             'state_decider= autorace_core_CVlization.state_decider:main',
             'signs_analyzer=autorace_core_CVlization.signs_analyzer:main',
             'intersection=autorace_core_CVlization.intersection:main',
-            'parking=autorace_core_CVlization.parking:main'
+            'construction=autorace_core_CVlization.construction:main',
+            'parking=autorace_core_CVlization.parking:main',
         ],
     },
 )
