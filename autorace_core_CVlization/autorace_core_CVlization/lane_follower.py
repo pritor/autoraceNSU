@@ -7,11 +7,11 @@ from rclpy.parameter import Parameter
 
 class ControlLane(Node):
     def __init__(self):
-        super().__init__('control_lane')
+        super().__init__('lane_follower')
         self.set_parameters([Parameter('use_sim_time', value=True)])
         self.sub_lane = self.create_subscription(Float64, '/detect/lane',  self.cbFollowLane, 1)
         # self.sub_max_vel = rospy.Subscriber('/control/max_vel', Float64, self.cbGetMaxVel, queue_size=1)
-        self.shtdwn_sub = self.create_subscription(Bool, '/shutdown/lane_follower', self.cbShutdown, 1 )
+        self.shtdwn_sub = self.create_subscription(Bool, '/shutdown/lane_follower', self.cbShutdown, 2)
         self.pub_cmd_vel = self.create_publisher(Twist,  '/cmd_vel',  1)
         # self.pub_ei = self.create_publisher(Float64, '/ei', 1)
         self.lastError = 0.

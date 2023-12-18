@@ -25,16 +25,12 @@ class TunnelNode(Node):
         self.cur_time = 0
 
         self.started = False
-        self.turn = False
-        self.is_dealing_with_obstacle = False
+        self.first_turn = False
+        self.second_turn = False
+        self.obstacle = False
 
-        stop = Bool()
-        stop.data = True
-        self.pub_shtdwn.publish(stop)
-        self.sleep(0.4)
-        vel = Twist()
-        vel.linear.x = 0.2
-        self.pub_vel.publish(vel)
+        self.lastError = 0.0
+
 
 
     def timerCb(self):
@@ -57,16 +53,74 @@ class TunnelNode(Node):
 
     def cbLidar(self, msg):
         lidar = np.array(msg.ranges)
+        min_i = np.argmin(lidar)
         if not self.started:
-            if lidar[270] < 100:
-                self.started = True
-                vel = Twist()
-                vel.linear.x = 0.0
-                self.pub_vel.publish(vel)
-                self.get_logger().info(f'{lidar[90]}, {lidar[270]}')
-        else:
+            # if lidar[270] < 0.23 and lidar[90] > 1.0:
+            stop = Bool()
+            stop.data = True
+            self.pub_shtdwn.publish(stop)
+            self.sleep(2.0)
+            self.started = True
+            vel = Twist()
+            vel.linear.x = 0.0
+            self.pub_vel.publish(vel)
+            self.get_logger().info(f'{lidar[90]}, {lidar[270]}')
+            self.sleep(1.5)
+            vel.linear.x = 0.2
+            vel.angular.z = 0.0
+            self.pub_vel.publish(vel)
+            self.sleep(2.0)
+            self.get_logger().info('stop turning')
+            vel.linear.x = 0.0
+            vel.angular.z = 0.5
+            self.pub_vel.publish(vel)
+            self.sleep(1.5)
+            vel.linear.x = 0.2
+            vel.angular.z = 0.0
+            self.pub_vel.publish(vel)
+            self.sleep(2.0)
+        elif self.started and not self.obstacle and lidar[0] > 0.2:
+            if lidar[90] > 1.0: lidar[90] = 1.0
+            error = lidar[90] - 0.16
+            self.get_logger().info(f'error = {error}')
+            vel = Twist()
+            vel.linear.x = min(0.2 * (abs(1 - abs(error) / 424) ** 2.2), 0.8)
+            vel.angular.z = 3.0 * error + 5.0 * (error - self.lastError)
+            self.lastError = error
+            self.pub_vel.publish(vel)
+        elif self.started and not self.obstacle and not self.first_turn:
+            vel = Twist()
+            vel.linear.x = 0.0
+            vel.angular.z = -0.2
+            self.pub_vel.publish(vel)
+            self.get_logger().info('turning')
+            if lidar[180] < 0.2:
+                self.first_turn = True
+                self.get_logger().info('turned')
 
-            self.get_logger().info('started')
+        # elif self.started and not self.first_turn and lidar[180] > 0.10:
+        #     vel = Twist()
+        #     vel.linear.x = 0.02
+        #     vel.angular.z = 0.3
+        #     self.pub_vel.publish(vel)
+        #     self.get_logger().info(f'first turn tuning {min_i} to 180')
+        # elif self.started and not self.first_turn:
+        #     vel = Twist()
+        #     vel.linear.x = 0.0
+        #     vel.angular.z = 0.0
+        #     self.pub_vel.publish(vel)
+        #     self.get_logger().info(f'tuned first_turn {min_i}')
+        #     self.first_turn = True
+        #     self.sleep(1.0)
+        #     vel.linear.x = 0.2
+        #     self.pub_vel.publish(vel)
+        #     self.sleep(1.0)
+        #     vel.linear.x = 0.0
+        #     self.pub_vel.publish(vel)
+
+
+
+
 
     def cbDepth(self, msg):
         pass

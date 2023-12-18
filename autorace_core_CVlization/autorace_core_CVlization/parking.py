@@ -21,11 +21,11 @@ class Laser_pepe(Node):
     def __init__(self):
         super().__init__('laser_pepe')
 
-        self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.publisher = self.create_publisher(Twist, '/cmd_vel', 1)
         # ros2 topic pub --once /shutdown/lane_follower std_msgs/Bool 'data: True'
-        self.stop_lane_follower_publisher = self.create_publisher(Bool, '/shutdown/lane_follower', 10)
-        self.run_lane_follower_publisher = self.create_publisher(String, '/state', 10)
-        self.subscriber_2 = self.create_subscription(LaserScan, '/scan', self.hard_code, 10)
+        self.stop_lane_follower_publisher = self.create_publisher(Bool, '/shutdown/lane_follower', 1)
+        self.run_lane_follower_publisher = self.create_publisher(String, '/state', 1)
+        self.subscriber_2 = self.create_subscription(LaserScan, '/scan', self.hard_code, 1)
         self.scan = LaserScan()
         # self.timer = self.create_timer(0.1, self.move)
         self.begin = True
@@ -87,7 +87,7 @@ class Laser_pepe(Node):
 
             self.get_logger().info('min index is ' + str(index_min_val))
             # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-            if (index_min_val > 220 and index_min_val < 238):
+            if (index_min_val > 222 and index_min_val < 236):
                 self.control_index = index_min_val
                 flag = False
                 stop_msg = Bool()
@@ -217,7 +217,7 @@ class Laser_pepe(Node):
         if (self.go_turn_3):
 
             self.get_logger().info(f'turning to free parking lot, index {index_min_val} val {min_val}')
-            val = 0.15
+            val = 0.12
 
             angle = 90
             speed = 0.15
@@ -230,7 +230,7 @@ class Laser_pepe(Node):
                 vel_msg_cor.angular.z = 0.0
                 vel_msg_cor.linear.x = 0.05
                 self.publisher.publish(vel_msg_cor)
-                self.sleep(0.3)
+                self.sleep(0.1)
                 vel_msg_cor.linear.x = 0.0
                 self.publisher.publish(vel_msg_cor)
 
@@ -279,7 +279,7 @@ class Laser_pepe(Node):
                 self.publisher.publish(vel_msg)
                 self.park = False
                 self.get_logger().info('waiting 1 sec before going back...')
-                self.sleep(1)
+                self.sleep(1.5)
                 self.go_back = True
 
         if (self.go_back):
@@ -312,10 +312,10 @@ class Laser_pepe(Node):
             right = 90
 
             if (self.turned_right):
-                vel_msg.angular.z = abs(angular_speed * 100)
+                vel_msg.angular.z = abs(angular_speed * 40)
                 pepe = right
             else:
-                vel_msg.angular.z = -abs(angular_speed * 100)
+                vel_msg.angular.z = -abs(angular_speed * 40)
                 pepe = left
             # ros1 = Time.now().to_sec(), ROS2 - ????
             if ((index_min_val > (pepe - 3)) and (index_min_val < (pepe + 3))):

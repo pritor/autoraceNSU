@@ -30,8 +30,9 @@ class ImageAnalyzer(Node):
 
     def analyze(self, image):
         if self.started:
-            image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            ikp, ides= self.sift.detectAndCompute(image_gray, None)
+            # image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            # image_gray = image_gray[:360]
+            ikp, ides= self.sift.detectAndCompute(image, None)
             # BFMatcher решает матч
             for i in self.signs:
                 good = []
@@ -40,7 +41,7 @@ class ImageAnalyzer(Node):
                 # Отрегулируйте коэффициент
 
                     for m, n in matches:
-                        if m.distance < 0.6 * n.distance:
+                        if m.distance < 0.55 * n.distance:
                             good.append([m])
                 except: pass
                 sign_pth = os.path.join(get_package_share_directory('autorace_core_CVlization'), 'signs', 'tunnel.png')
@@ -51,7 +52,7 @@ class ImageAnalyzer(Node):
                 # cv2.waitKey(0)
                 msg = self.br.cv2_to_imgmsg(dbg, 'bgr8')
                 self.dbg_pub.publish(msg)
-                if len(good) >= 31:
+                if len(good) >= 25:
                     self.get_logger().info(f"result of image analyzing is {i[2]} with {len(good)}")
                     return i[2]
         else:
