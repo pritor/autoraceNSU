@@ -488,7 +488,7 @@ class LaneFinder(Node):
         if self.is_center_x_exist == True:
             # publishes lane center
             msg_desired_center = Float64()
-            msg_desired_center.data = centerx.item(300)
+            msg_desired_center.data = centerx.item(320)
             self.pub_lane.publish(msg_desired_center)
 
         self.pub_image_lane.publish(self.cvBridge.cv2_to_imgmsg(final, "bgr8"))

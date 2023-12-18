@@ -18,7 +18,7 @@ class ImageAnalyzer(Node):
         self.br = CvBridge()
         self.started = False
         self.sift= cv2.SIFT_create()
-        self.bf = cv2.BFMatcher()
+        self.bf = cv2.BFMatcher(cv2.NORM_L1)
 
     def img_callback(self, msg):
         image = self.br.imgmsg_to_cv2(msg, "bgr8")
@@ -40,16 +40,19 @@ class ImageAnalyzer(Node):
                 # Отрегулируйте коэффициент
 
                     for m, n in matches:
-                        if m.distance < 0.55 * n.distance:
+                        if m.distance < 0.6 * n.distance:
                             good.append([m])
                 except: pass
-                # sign_pth = os.path.join(get_package_share_directory('autorace_core_CVlization'), 'signs', 'tunnel.png')
-                # sign = cv2.imread(sign_pth)
-                # dbg = cv2.drawMatchesKnn(sign, i[0], image, ikp, good, None, flags=2)
-                # msg = self.br.cv2_to_imgmsg(dbg, 'bgr8')
-                # self.dbg_pub.publish(msg)
-                if len(good) >= 20:
-                    # self.get_logger().info("result of image analyzing is " + "found "+i[2])
+                sign_pth = os.path.join(get_package_share_directory('autorace_core_CVlization'), 'signs', 'tunnel.png')
+                sign = cv2.imread(sign_pth)
+                dbg = cv2.drawMatchesKnn(sign, i[0], image, ikp, good, None, flags=2)
+
+                # cv2.imshow(i[2], dbg)
+                # cv2.waitKey(0)
+                msg = self.br.cv2_to_imgmsg(dbg, 'bgr8')
+                self.dbg_pub.publish(msg)
+                if len(good) >= 31:
+                    self.get_logger().info(f"result of image analyzing is {i[2]} with {len(good)}")
                     return i[2]
         else:
             # self.started =True

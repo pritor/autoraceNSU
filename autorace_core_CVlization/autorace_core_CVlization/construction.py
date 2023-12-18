@@ -83,7 +83,7 @@ class ConstructionNode(Node):
             self.get_logger().info(f'stop second_turn {lidar[0]}')
             self.pub_vel.publish(vel)
             self.second_turn = True
-        if self.second_turn and lidar[0] > 0.26 and not self.second_stop:
+        if self.second_turn and lidar[0] > 0.28 and not self.second_stop:
             vel = Twist()
             vel.linear.x = 0.2
             self.get_logger().info(f'{lidar[0]}')
@@ -94,7 +94,7 @@ class ConstructionNode(Node):
             self.get_logger().info('stop')
             self.pub_vel.publish(vel)
             self.second_stop = True
-        if self.second_stop and lidar[89] > 0.15 and not self.third_turn:
+        if self.second_stop and lidar[89] > 0.17 and not self.third_turn:
             vel = Twist()
             vel.angular.z = -0.5
             self.get_logger().info(f'{lidar[89]} third turn')
@@ -108,12 +108,12 @@ class ConstructionNode(Node):
             vel.linear.x = 0.0
             self.pub_vel.publish(vel)
             self.third_turn = True
-        if self.third_turn and not self.fourth_turn and lidar[179] > 0.27:
+        if self.third_turn and not self.fourth_turn and lidar[179] > 0.26:
             vel = Twist()
             vel.angular.z = 0.5
             self.get_logger().info(f'{lidar[179]} fourth turn')
             self.pub_vel.publish(vel)
-        elif self.third_turn and not self.fourth_turn and abs(lidar[179] - lidar[180])>0.001 and lidar[179]<0.27:
+        elif self.third_turn and not self.fourth_turn and abs(lidar[179] - lidar[180])>0.001 and lidar[179]<0.26:
             vel = Twist()
             vel.angular.z = 0.3
             self.get_logger().info(f'{lidar[179]} {lidar[180]} fourth turn tuning')
